@@ -108,10 +108,18 @@ export function getEmployeeStatistics(employees) {
     // --- výpočet věků ---
     const ages = calculateAges(employees);
 
-    // průměr věku – 1 desetinné místo
-   
-    const preciseAges = employees.map(e => calculatePreciseAge(e.birthdate));
-    const averageAge = Number(average(preciseAges).toFixed(1)); // průměr z „kontinuálního věku“
+    
+// průměr věku z přesného (kontinuálního) věku – 1 desetinné místo
+  const msPerYear = 365.25 * 24 * 60 * 60 * 1000;
+  const averageAge = employees.length
+    ? Number((
+        employees.reduce(
+          (sum, e) => sum + (Date.now() - new Date(e.birthdate).getTime()) / msPerYear,
+          0
+        ) / employees.length
+      ).toFixed(1))
+    : 0;
+
 
     // min / max / median věku – zaokrouhleno na celá čísla
     const minAge = Math.min(...ages);
