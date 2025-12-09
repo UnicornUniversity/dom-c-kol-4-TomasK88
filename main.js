@@ -55,18 +55,15 @@ export function generateEmployeeData(dtoIn) {
     for (let i = 0; i < dtoIn.count; i++) {
         // Pohlaví určíme náhodně (pravděpodobnost 50:50).
         const gender = Math.random() < 0.5 ? "male" : "female";
+        const names = gender === "male" ? maleNames : femaleNames;
+        const surnames = gender === "male" ? maleSurnames : femaleSurnames;
+
 
         // Podle pohlaví vybereme křestní jméno z příslušného pole.
-        const name =
-            gender === "male"
-                ? maleNames[randomInt(0, maleNames.length - 1)]
-                : femaleNames[randomInt(0, femaleNames.length - 1)];
+        const name = names[randomInt(0, names.length - 1)];
 
         // Podle pohlaví vybereme příjmení (mužské / ženské).
-        const surname =
-            gender === "male"
-                ? maleSurnames[randomInt(0, maleSurnames.length - 1)]
-                : femaleSurnames[randomInt(0, femaleSurnames.length - 1)];
+        const surname = surnames[randomInt(0, surnames.length - 1)];
 
         // Náhodně vybereme jeden z povolených úvazků (10 / 20 / 30 / 40).
         const workload = workloads[randomInt(0, workloads.length - 1)];
@@ -105,13 +102,13 @@ function calculateAgeStatistics(employees) {
     
     // Průměr věku – počítáme z PŘESNÝCH čísel, zaokrouhleno na 1 desetinné místo
     const averageAge = preciseAges.length
-        ? Number(average(preciseAges).toFixed(1))
+        ? Number(average(preciseAges).toFixed(1)) // Musí být číslo, toFixed vrací string
         : 0;
 
     // Min / Max / Medián – počítáme z CELÝCH čísel (integerAges)
     const minAge = integerAges.length ? Math.min(...integerAges) : 0;
     const maxAge = integerAges.length ? Math.max(...integerAges) : 0;
-    // Používáme Math.floor na medián, aby výsledek X.5 byl brán jako celé číslo X
+    // Používáme Math.floor na medián celého věku.
     const medianAge = integerAges.length ? Math.floor(median(integerAges)) : 0;
     
     return { averageAge, minAge, maxAge, medianAge };
@@ -248,6 +245,7 @@ function randomInt(min, max) {
  * - vezmu aktuální čas,
  * - spočítám dvě hrany (nejmladší možný: "teď - minAge", nejstarší možný: "teď - maxAge"),
  * - vybereu náhodný čas mezi těmito hranami.
+ * Zajišťuje striktní dodržení hranic pro vyřešení problému "maxAge 54 should be 53".
  * @param {number} minAge - Minimální věk (v letech)
  * @param {number} maxAge - Maximální věk (v letech)
  * @returns {string} ISO datum narození (YYYY-MM-DDTHH:mm:ss.sssZ)
@@ -258,15 +256,21 @@ function generateBirthdate(minAge, maxAge) {
 
     // Počet milisekund v jednom „průměrném“ roku (365.25 dne), dny*hodiny*minuty*sekundy*1000
     const msPerYear = 365.25 * 24 * 60 * 60 * 1000;
+    
+    // Nejstarší datum (nejdřívější čas): Musí být po okamžiku, kdy by osoba dosáhla maxAge + 1.
+    // Tímto se garantuje, že kalendářní věk (Math.floor(age)) nikdy nepřesáhne maxAge.
+    const oldestPossibleTimeExclusive = now.getTime() - (maxAge + 1) * msPerYear;
 
-    //  Nejmladší dovolené datum narození 
-    const youngest = new Date(now.getTime() - minAge * msPerYear);
+    // Nejmladší datum (nejpozdější čas): Musí být před okamžikem, kdy by osoba dosáhla minAge.
+    const youngestPossibleTimeInclusive = now.getTime() - minAge * msPerYear;
 
-    // Nejstarší dovolené datum narození 
-    const oldest = new Date(now.getTime() - maxAge * msPerYear);
-
-    // Náhodný timestamp mezi „oldest“ a „youngest“
-    const randomTime = randomInt(oldest.getTime(), youngest.getTime());
+    // Generujeme náhodný čas: 
+    // Od nejstaršího možného + 1 ms (aby se vyloučil věk maxAge + 1) 
+    // do nejmladšího možného (včetně).
+    const randomTime = randomInt(
+        Math.floor(oldestPossibleTimeExclusive + 1), 
+        Math.floor(youngestPossibleTimeInclusive)
+    );
 
     // Převod na ISO formát
     return new Date(randomTime).toISOString();
