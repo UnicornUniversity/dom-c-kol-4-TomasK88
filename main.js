@@ -84,18 +84,11 @@ export function generateEmployeeData(dtoIn) {
 }
 
 /**
- * Vypočítá statistiky o zaměstnancích – počty úvazků, věkové statistiky,
- * průměrné hodnoty a seřazený seznam zaměstnanců.
- * @param {Array} employees - Pole zaměstnanců vytvořené funkcí generateEmployeeData.
- * @returns {object} Vrací objekt obsahující statistiky.
+ * Vypočítá statistiky týkající se věku (průměr, min, max, medián).
+ * @param {Array} employees - Pole zaměstnanců.
+ * @returns {{averageAge: number, minAge: number, maxAge: number, medianAge: number}} Věkové statistiky.
  */
-export function getEmployeeStatistics(employees) {
-    const dtoOut = {};
-
-    // --- počty workloadů ---
-    const workloadCounts = countWorkloads(employees);
-
-    // --- výpočet věků ---
+function calculateAgeStatistics(employees) {
     // Konstanty pro výpočet věku stejně jako při generování
     const msPerYear = 365.25 * 24 * 60 * 60 * 1000;
     
@@ -110,17 +103,36 @@ export function getEmployeeStatistics(employees) {
     // 2. Získáme celé věky (zaokrouhleno dolů) pro výpočet min/max/median
     const integerAges = preciseAges.map(age => Math.floor(age));
     
-    // průměr věku – počítáme z PŘESNÝCH čísel, zaokrouhleno na 1 desetinné místo
+    // Průměr věku – počítáme z PŘESNÝCH čísel, zaokrouhleno na 1 desetinné místo
     const averageAge = preciseAges.length
         ? Number(average(preciseAges).toFixed(1))
         : 0;
 
-    // min / max / median – počítáme z CELÝCH čísel (integerAges)
+    // Min / Max / Medián – počítáme z CELÝCH čísel (integerAges)
     const minAge = integerAges.length ? Math.min(...integerAges) : 0;
     const maxAge = integerAges.length ? Math.max(...integerAges) : 0;
     // Používáme Math.floor na medián, aby výsledek X.5 byl brán jako celé číslo X
     const medianAge = integerAges.length ? Math.floor(median(integerAges)) : 0;
+    
+    return { averageAge, minAge, maxAge, medianAge };
+}
 
+
+/**
+ * Vypočítá statistiky o zaměstnancích – počty úvazků, věkové statistiky,
+ * průměrné hodnoty a seřazený seznam zaměstnanců.
+ * @param {Array} employees - Pole zaměstnanců vytvořené funkcí generateEmployeeData.
+ * @returns {object} Vrací objekt obsahující statistiky.
+ */
+export function getEmployeeStatistics(employees) {
+    const dtoOut = {};
+
+    // --- počty workloadů ---
+    const workloadCounts = countWorkloads(employees);
+
+    // --- výpočet věků ---
+    const ageStats = calculateAgeStatistics(employees);
+    
     // medián workloadu – celé číslo
     const workloadsList = employees.map(e => e.workload);
     const medianWorkload = Math.round(median(workloadsList));
@@ -138,10 +150,10 @@ export function getEmployeeStatistics(employees) {
     dtoOut.workload30 = workloadCounts.workload30;
     dtoOut.workload40 = workloadCounts.workload40;
 
-    dtoOut.averageAge = averageAge;
-    dtoOut.minAge = minAge;
-    dtoOut.maxAge = maxAge;
-    dtoOut.medianAge = medianAge;
+    dtoOut.averageAge = ageStats.averageAge;
+    dtoOut.minAge = ageStats.minAge;
+    dtoOut.maxAge = ageStats.maxAge;
+    dtoOut.medianAge = ageStats.medianAge;
 
     dtoOut.medianWorkload = medianWorkload;
     dtoOut.averageWomenWorkload = averageWomenWorkload;
