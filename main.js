@@ -105,26 +105,21 @@ export function getEmployeeStatistics(employees) {
     // --- počty workloadů ---
     const workloadCounts = countWorkloads(employees);
 
-    // --- výpočet věků ---
-    const ages = calculateAges(employees);
 
-    
-// průměr věku z přesného (kontinuálního) věku – 1 desetinné místo
-  const msPerYear = 365.25 * 24 * 60 * 60 * 1000;
-  const averageAge = employees.length
-    ? Number((
-        employees.reduce(
-          (sum, e) => sum + (Date.now() - new Date(e.birthdate).getTime()) / msPerYear,
-          0
-        ) / employees.length
-      ).toFixed(1))
-    : 0;
+    // --- výpočet věků (přesné, kontinuální) ---
+    const msPerYear = 365.25 * 24 * 60 * 60 * 1000; // stejná konstanta jako při generování
+    const preciseAges = employees.map(e =>
+        (Date.now() - new Date(e.birthdate).getTime()) / msPerYear
+    );
+    // průměr věku – přesné věky, 1 desetinné místo
+    const averageAge = preciseAges.length
+        ? Number(average(preciseAges).toFixed(1))
+        : 0;
+    // min / max / median – zaokrouhleny na celá čísla (po výpočtu z přesných věků)
+    const minAge = preciseAges.length ? Math.round(Math.min(...preciseAges)) : 0;
+    const maxAge = preciseAges.length ? Math.round(Math.max(...preciseAges)) : 0;
+    const medianAge = preciseAges.length ? Math.round(median(preciseAges)) : 0;
 
-
-    // min / max / median věku – zaokrouhleno na celá čísla
-    const minAge = Math.min(...ages);
-    const maxAge = Math.max(...ages);
-    const medianAge = median(ages);
 
     // medián workloadu – celé číslo
     const workloads = employees.map(e => e.workload);
