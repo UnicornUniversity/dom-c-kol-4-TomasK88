@@ -10,6 +10,17 @@ export function main(dtoIn) {
     return dtoOut;
 }
 
+// pole českých jmen pro muže a pro ženy.
+const maleNames = ["Jan", "Petr", "Lukáš", "Tomáš", "Jiří", "Martin", "Karel", "Ondřej", "Václav", "Marek"];
+const femaleNames = ["Jana", "Petra", "Lucie", "Tereza", "Eva", "Marie", "Hana", "Alena", "Veronika", "Kateřina"];
+
+// Příjmení rozdělené na mužské a ženské
+//    U ženských příjmení vytvořeno samostatné pole, protože nefungovalo mechanicky přidat "-ová" k mužskému příjmení (např. Outrata -> Outrataová, Pokorný->Pokornýová apod. není správně).
+const maleSurnames = ["Novák", "Svoboda", "Dvořák", "Černý", "Procházka", "Kučera", "Outrata", "Pokorný", "Král", "Sedláček"];
+const femaleSurnames = ["Nováková", "Svobodová", "Dvořáková", "Černá", "Procházková", "Kučerová", "Outratová", "Pokorná", "Králová", "Sedláčková"];
+
+// Úvazky dle zadání: 10 / 20 / 30 / 40 hodin týdně.
+const workloads = [10, 20, 30, 40];
 
 /**
  * Generuje seznam zaměstnanců v požadované struktuře (gender, birthdate, name, surname, workload).
@@ -23,18 +34,6 @@ export function main(dtoIn) {
  * @returns {Array<object>} Pole zaměstnanců s požadovanými informacmi
  */
 export function generateEmployeeData(dtoIn) {
-    // pole českých jmen pro muže a pro ženy.
-    const maleNames = ["Jan", "Petr", "Lukáš", "Tomáš", "Jiří", "Martin", "Karel", "Ondřej", "Václav", "Marek"];
-    const femaleNames = ["Jana", "Petra", "Lucie", "Tereza", "Eva", "Marie", "Hana", "Alena", "Veronika", "Kateřina"];
-
-    // Příjmení rozdělené na mužské a ženské
-    //    U ženských příjmení vytvořeno samostatné pole, protože nefungovalo mechanicky přidat "-ová" k mužskému příjmení (např. Outrata -> Outrataová, Pokorný->Pokornýová apod. není správně).
-    const maleSurnames = ["Novák", "Svoboda", "Dvořák", "Černý", "Procházka", "Kučera", "Outrata", "Pokorný", "Král", "Sedláček"];
-    const femaleSurnames = ["Nováková", "Svobodová", "Dvořáková", "Černá", "Procházková", "Kučerová", "Outratová", "Pokorná", "Králová", "Sedláčková"];
-
-    // Úvazky dle zadání: 10 / 20 / 30 / 40 hodin týdně.
-    const workloads = [10, 20, 30, 40];
-
     // pole pro vygenerované zaměstnance.
     const employees = [];
 
@@ -51,7 +50,6 @@ export function generateEmployeeData(dtoIn) {
     ) {
         console.error("Věkový interval je neplatný.");
     }
-
 
     // generování tolika zaměstnanců, kolik je v dtoIn.count.
     for (let i = 0; i < dtoIn.count; i++) {
@@ -86,14 +84,6 @@ export function generateEmployeeData(dtoIn) {
 }
 
 /**
- * Vrátí náhodné celé číslo
- * Použítí Math.floor nad Math.random(), aby bylo číslo celé.
- * @param {number} min - Dolní hranice (včetně)
- * @param {number} max - Horní hranice (včetně)
- * @returns {number} Náhodné celé číslo v intervalu
- */
-
-/**
  * Vypočítá statistiky o zaměstnancích – počty úvazků, věkové statistiky,
  * průměrné hodnoty a seřazený seznam zaměstnanců.
  * @param {Array} employees - Pole zaměstnanců vytvořené funkcí generateEmployeeData.
@@ -105,25 +95,23 @@ export function getEmployeeStatistics(employees) {
     // --- počty workloadů ---
     const workloadCounts = countWorkloads(employees);
 
-
-    // --- výpočet věků (přesné, kontinuální) ---
-    const msPerYear = 365.25 * 24 * 60 * 60 * 1000; // stejná konstanta jako při generování
-    const preciseAges = employees.map(e =>
-        (Date.now() - new Date(e.birthdate).getTime()) / msPerYear
-    );
-    // průměr věku – přesné věky, 1 desetinné místo
-    const averageAge = preciseAges.length
-        ? Number(average(preciseAges).toFixed(1))
+    // --- výpočet věků ---
+    // Použijeme funkci calculateAges pro získání přesného kalendářního věku
+    const ages = calculateAges(employees);
+    
+    // průměr věku – 1 desetinné místo
+    const averageAge = ages.length
+        ? Number(average(ages).toFixed(1))
         : 0;
-    // min / max / median – zaokrouhleny na celá čísla (po výpočtu z přesných věků)
-    const minAge = preciseAges.length ? Math.floor(Math.min(...preciseAges)) : 0;
-    const maxAge = preciseAges.length ? Math.ceil(Math.max(...preciseAges)) : 0;
-    const medianAge = preciseAges.length ? Math.round(median(preciseAges)) : 0;
 
+    // min / max / median – počítáno z celých let
+    const minAge = ages.length ? Math.min(...ages) : 0;
+    const maxAge = ages.length ? Math.max(...ages) : 0;
+    const medianAge = ages.length ? Math.round(median(ages)) : 0;
 
     // medián workloadu – celé číslo
-    const workloads = employees.map(e => e.workload);
-    const medianWorkload = Math.round(median(workloads));
+    const workloadsList = employees.map(e => e.workload);
+    const medianWorkload = Math.round(median(workloadsList));
 
     // průměrný workload žen
     const averageWomenWorkload = calculateAverageWomenWorkload(employees);
@@ -246,11 +234,13 @@ function calculateAverageWomenWorkload(employees) {
 function sortByWorkload(employees) {
     return employees.slice().sort((a, b) => a.workload - b.workload);
 }
+
 /**
- * Pomocná funkce pro generování náhodného čísla z intervalu
- * @param {*} min dolní interval čísla
- * @param {*} max horní interval čísla
- * @returns 
+ * Vrátí náhodné celé číslo
+ * Použítí Math.floor nad Math.random(), aby bylo číslo celé.
+ * @param {number} min - Dolní hranice (včetně)
+ * @param {number} max - Horní hranice (včetně)
+ * @returns {number} Náhodné celé číslo v intervalu
  */
 function randomInt(min, max) {
     // Math.random() vrací číslo v intervalu <0, 1).
@@ -261,9 +251,9 @@ function randomInt(min, max) {
 /**
  * Vygeneruje náhodné datum narození tak, aby výsledný věk byl v intervalu <minAge, maxAge>.
  * Postup:
- *  - vezmu aktuální čas,
- *  - spočítám dvě hrany (nejmladší možný: "teď - minAge", nejstarší možný: "teď - maxAge"),
- *  - vybereu náhodný čas mezi těmito hranami.
+ * - vezmu aktuální čas,
+ * - spočítám dvě hrany (nejmladší možný: "teď - minAge", nejstarší možný: "teď - maxAge"),
+ * - vybereu náhodný čas mezi těmito hranami.
  * @param {number} minAge - Minimální věk (v letech)
  * @param {number} maxAge - Maximální věk (v letech)
  * @returns {string} ISO datum narození (YYYY-MM-DDTHH:mm:ss.sssZ)
@@ -299,5 +289,3 @@ const dtoIn = {
 const result = main(dtoIn);
 console.log(result);
 */
-
-
