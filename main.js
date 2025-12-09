@@ -15,7 +15,6 @@ export function main(dtoIn) {
  * Generuje seznam zaměstnanců v požadované struktuře (gender, birthdate, name, surname, workload).
  * Vstupem je dtoIn s počtem osob (count) a věkovým intervalem (age.min, age.max).
  * Výstupem je pole objektů zaměstnanců.
- * 
  * @param {object} dtoIn - Vstupní data (počet a věkový interval)
  * @param {number} dtoIn.count - Počet zaměstnanců, které máme vygenerovat
  * @param {object} dtoIn.age - Objekt s minimálním a maximálním věkem
@@ -95,9 +94,8 @@ export function generateEmployeeData(dtoIn) {
  */
 
 /**
-* Vypočítá statistiky o zaměstnancích – počty úvazků, věkové statistiky,
+ * Vypočítá statistiky o zaměstnancích – počty úvazků, věkové statistiky,
  * průměrné hodnoty a seřazený seznam zaměstnanců.
- *
  * @param {Array} employees - Pole zaměstnanců vytvořené funkcí generateEmployeeData.
  * @returns {object} Vrací objekt obsahující statistiky.
  */
@@ -114,9 +112,9 @@ export function getEmployeeStatistics(employees) {
     const averageAge = Number(average(ages).toFixed(1));
 
     // min / max / median věku – zaokrouhleno na celá čísla
-    const minAge = Math.round(Math.min(...ages));
-    const maxAge = Math.round(Math.max(...ages));
-    const medianAge = Math.round(median(ages));
+    const minAge = Math.min(...ages);
+    const maxAge = Math.max(...ages);
+    const medianAge = median(ages);
 
     // medián workloadu – celé číslo
     const workloads = employees.map(e => e.workload);
@@ -150,7 +148,6 @@ export function getEmployeeStatistics(employees) {
 /**
  * Vypočítá věk osoby v celých letech podle kalendářních dat.
  * Zohledňuje, zda již letos proběhly narozeniny.
- * 
  * @param {string} birthdate - ISO řetězec narození (např. "1988-04-12T10:23:00Z")
  * @returns {number} Věk v celých letech
  */
@@ -171,7 +168,6 @@ function calculateExactAge(birthdate) {
 }
 /**
  * Vypočítá věk pro každého zaměstnance v poli pomocí přesného kalendářního výpočtu.
- *
  * @param {Array} employees - Pole zaměstnanců
  * @returns {Array<number>} Věky zaměstnanců
  */
@@ -181,7 +177,6 @@ function calculateAges(employees) {
 
 /**
  * Spočítá průměr čísel v poli.
- * 
  * @param {Array<number>} arr Pole čísel pro výpočet průměru.
  * @returns {number} Vrací průměr čísel, nebo 0 pokud je pole prázdné.
  */
@@ -211,7 +206,6 @@ function median(arr) {
 
 /**
  * Spočítá počet zaměstnanců podle jejich pracovního úvazku (10/20/30/40).
- *
  * @param {Array} employees - Pole zaměstnanců, kteří mají vlastnost workload.
  * @returns {{workload10:number, workload20:number, workload30:number, workload40:number}} Vrací objekt s počty pro jednotlivé typy úvazků.
  */
@@ -226,7 +220,6 @@ function countWorkloads(employees) {
 
 /**
  * Spočítá průměrný úvazek zaměstnankyň, zaokrouhlený na jedno desetinné místo.
- *
  * @param {Array} employees - Pole zaměstnanců, které může obsahovat ženy s různými úvazky.
  * @returns {number}  Vrací průměrný úvazek žen, nebo 0 pokud žádné nejsou.
  */
@@ -241,8 +234,7 @@ function calculateAverageWomenWorkload(employees) {
 }
 
 /**
-* Vrátí nové pole zaměstnanců seřazené vzestupně podle pracovního úvazku.
- *
+ * Vrátí nové pole zaměstnanců seřazené vzestupně podle pracovního úvazku.
  * @param {Array} employees - Pole zaměstnanců s vlastností workload.
  * @returns {Array} Vrací nové pole seřazených zaměstnanců.
  */
