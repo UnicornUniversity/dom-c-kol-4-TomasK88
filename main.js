@@ -116,8 +116,8 @@ export function getEmployeeStatistics(employees) {
         ? Number(average(preciseAges).toFixed(1))
         : 0;
     // min / max / median – zaokrouhleny na celá čísla (po výpočtu z přesných věků)
-    const minAge = preciseAges.length ? Math.round(Math.min(...preciseAges)) : 0;
-    const maxAge = preciseAges.length ? Math.round(Math.max(...preciseAges)) : 0;
+    const minAge = preciseAges.length ? Math.floor(Math.min(...preciseAges)) : 0;
+    const maxAge = preciseAges.length ? Math.ceil(Math.max(...preciseAges)) : 0;
     const medianAge = preciseAges.length ? Math.round(median(preciseAges)) : 0;
 
 
