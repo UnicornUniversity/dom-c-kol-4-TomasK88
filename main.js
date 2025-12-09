@@ -96,18 +96,26 @@ export function getEmployeeStatistics(employees) {
     const workloadCounts = countWorkloads(employees);
 
     // --- výpočet věků ---
-    // Použijeme funkci calculateAges pro získání přesného kalendářního věku
-    const ages = calculateAges(employees);
+    // Konstanty pro výpočet věku stejně jako při generování
+    const msPerYear = 365.25 * 24 * 60 * 60 * 1000;
     
-    // průměr věku – 1 desetinné místo
-    const averageAge = ages.length
-        ? Number(average(ages).toFixed(1))
+    // 1. Získáme přesné věky (desetinná čísla) pro výpočet přesného průměru
+    const preciseAges = employees.map(e => 
+        (new Date().getTime() - new Date(e.birthdate).getTime()) / msPerYear
+    );
+
+    // 2. Získáme celé věky (zaokrouhleno dolů) pro výpočet min/max/median
+    const integerAges = preciseAges.map(age => Math.floor(age));
+    
+    // průměr věku – počítáme z PŘESNÝCH čísel
+    const averageAge = preciseAges.length
+        ? Number(average(preciseAges).toFixed(1))
         : 0;
 
-    // min / max / median – počítáno z celých let
-    const minAge = ages.length ? Math.min(...ages) : 0;
-    const maxAge = ages.length ? Math.max(...ages) : 0;
-    const medianAge = ages.length ? Math.round(median(ages)) : 0;
+    // min / max / median – počítáme z CELÝCH čísel (integerAges)
+    const minAge = integerAges.length ? Math.min(...integerAges) : 0;
+    const maxAge = integerAges.length ? Math.max(...integerAges) : 0;
+    const medianAge = integerAges.length ? Math.round(median(integerAges)) : 0;
 
     // medián workloadu – celé číslo
     const workloadsList = employees.map(e => e.workload);
@@ -136,36 +144,6 @@ export function getEmployeeStatistics(employees) {
     dtoOut.sortedByWorkload = sortedByWorkload;
 
     return dtoOut;
-}
-
-/**
- * Vypočítá věk osoby v celých letech podle kalendářních dat.
- * Zohledňuje, zda již letos proběhly narozeniny.
- * @param {string} birthdate - ISO řetězec narození (např. "1988-04-12T10:23:00Z")
- * @returns {number} Věk v celých letech
- */
-function calculateExactAge(birthdate) {
-    const today = new Date();
-    const birth = new Date(birthdate);
-
-    let age = today.getFullYear() - birth.getFullYear();
-
-    const monthDiff = today.getMonth() - birth.getMonth();
-    const dayDiff = today.getDate() - birth.getDate();
-
-    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
-        age--;
-    }
-
-    return age;
-}
-/**
- * Vypočítá věk pro každého zaměstnance v poli pomocí přesného kalendářního výpočtu.
- * @param {Array} employees - Pole zaměstnanců
- * @returns {Array<number>} Věky zaměstnanců
- */
-function calculateAges(employees) {
-    return employees.map(e => calculateExactAge(e.birthdate));
 }
 
 /**
