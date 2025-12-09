@@ -25,6 +25,7 @@ export function main(dtoIn) {
     return dtoOut;
 }
 
+
 /**
  * @param {object} dtoIn - Vstupní data (počet a věkový interval)
  * @param {number} dtoIn.count - Počet zaměstnanců, které máme vygenerovat
@@ -33,8 +34,6 @@ export function main(dtoIn) {
  * @param {number} dtoIn.age.max - Maximální věk (v letech, reálné číslo)
  * @returns {Array<object>} Pole zaměstnanců s požadovanými informacmi
  */
-
-//funkce pro generování pole zaměstnanců 
 export function generateEmployeeData(dtoIn) {
     // pole českých jmen pro muže a pro ženy.
     const maleNames = ["Jan", "Petr", "Lukáš", "Tomáš", "Jiří", "Martin", "Karel", "Ondřej", "Václav", "Marek"];
@@ -113,7 +112,6 @@ if (typeof dtoIn.count !== "number" || dtoIn.count <= 0) {  //podmínka, že po�
  * - minAge, maxAge, medianAge -> zaokrouhleno na celá čísla (Math.round)
  * - medianWorkload -> celé číslo (zaručeno; výpočet mediánu a Math.round pro jistotu)
  * - averageWomenWorkload -> zaokrouhlení na 1 desetinné místo (nebo celé číslo) - povoleno
- *
  * @param {Array} employees - pole objektů {gender, birthdate (ISO), name, surname, workload}
  * @returns {object} dtoOut s požadovanými poli
  */
@@ -163,24 +161,51 @@ export function getEmployeeStatistics(employees) {
     return dtoOut;
 }
 
-// Výpočet pole věků jako desetinných čísel
-function calculateAges(employees) {
-    const now = new Date();
-    const msPerYear = 365.25 * 24 * 60 * 60 * 1000;
+/**
+ * Vypočítá věk přesně podle kalendáře 
+ * @param {string} birthdate - ISO řetězec narození (např. "1988-04-12T10:23:00Z")
+ * @returns {number} Věk v celých letech
+ */
+function calculateExactAge(birthdate) {
+    const today = new Date();
+    const birth = new Date(birthdate);
 
-    return employees.map(e => {
-        const birthMs = new Date(e.birthdate).getTime();
-        return (now.getTime() - birthMs) / msPerYear;
-    });
+    let age = today.getFullYear() - birth.getFullYear();
+
+    const monthDiff = today.getMonth() - birth.getMonth();
+    const dayDiff = today.getDate() - birth.getDate();
+
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+        age--;
+    }
+
+    return age;
+}
+/**
+ * Vytvoří pole věků pomocí calculateExactAge().
+ * @param {Array} employees - Pole zaměstnanců
+ * @returns {Array<number>} Věky zaměstnanců
+ */
+function calculateAges(employees) {
+    return employees.map(e => calculateExactAge(e.birthdate));
 }
 
-// Průměr
+/**
+ * Spočítá průměr čísel v poli.
+ * @param {Array<number>} arr
+ * @returns {number}
+ */
 function average(arr) {
     if (arr.length === 0) return 0;
-    return arr.reduce((sum, value) => sum + value, 0) / arr.length;
+    const sum = arr.reduce((sum, value) => sum + value, 0);
+    return sum / arr.length;
 }
 
-// Medián
+/**
+ * Spočítá medián pole čísel.
+ * @param {Array<number>} arr
+ * @returns {number}
+ */
 function median(arr) {
     if (arr.length === 0) return 0;
     const sorted = arr.slice().sort((a, b) => a - b);
@@ -193,7 +218,11 @@ function median(arr) {
     }
 }
 
-// Počty jednotlivých workloadů
+/**
+ * Vrátí počty zaměstnanců podle workloadů.
+ * @param {Array} employees
+ * @returns {{workload10:number, workload20:number, workload30:number, workload40:number}}
+ */
 function countWorkloads(employees) {
     return {
         workload10: employees.filter(e => e.workload === 10).length,
@@ -203,7 +232,11 @@ function countWorkloads(employees) {
     };
 }
 
-// Průměrný workload žen
+/**
+ * Spočítá průměrný workload žen, zaokrouhlený na 1 desetinné místo.
+ * @param {Array} employees
+ * @returns {number}
+ */
 function calculateAverageWomenWorkload(employees) {
     const women = employees.filter(e => e.gender === "female");
     if (women.length === 0) return 0;
@@ -214,7 +247,11 @@ function calculateAverageWomenWorkload(employees) {
     return Number(avg.toFixed(1)); // povoleno: 1 desetinné místo
 }
 
-// Seřazení podle workloadu
+/**
+ * Vrátí zaměstnance seřazené podle úvazku (vzestupně).
+ * @param {Array} employees
+ * @returns {Array}
+ */
 function sortByWorkload(employees) {
     return employees.slice().sort((a, b) => a.workload - b.workload);
 }
@@ -255,6 +292,7 @@ function generateBirthdate(minAge, maxAge) {
     return new Date(randomTime).toISOString();
 }
 
+/* Test funkčnosti
 const dtoIn = { 
     count: 50, 
     age: { 
@@ -264,6 +302,6 @@ const dtoIn = {
 
 const result = main(dtoIn);
 console.log(result);
-
+*/
 
 
