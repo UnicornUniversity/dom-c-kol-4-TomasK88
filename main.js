@@ -58,7 +58,6 @@ export function generateEmployeeData(dtoIn) {
         const names = gender === "male" ? maleNames : femaleNames;
         const surnames = gender === "male" ? maleSurnames : femaleSurnames;
 
-
         // Podle pohlaví vybereme křestní jméno z příslušného pole.
         const name = names[randomInt(0, names.length - 1)];
 
@@ -102,7 +101,7 @@ function calculateAgeStatistics(employees) {
     
     // Průměr věku – počítáme z PŘESNÝCH čísel, zaokrouhleno na 1 desetinné místo
     const averageAge = preciseAges.length
-        ? Number(average(preciseAges).toFixed(1)) // Musí být číslo, toFixed vrací string
+        ? Number(average(preciseAges).toFixed(1)) // toFixed vrací string, proto nutné převést na Number
         : 0;
 
     // Min / Max / Medián – počítáme z CELÝCH čísel (integerAges)
@@ -254,23 +253,24 @@ function generateBirthdate(minAge, maxAge) {
     // Aktuální datum/čas
     const now = new Date();
 
-    // Počet milisekund v jednom „průměrném“ roku (365.25 dne), dny*hodiny*minuty*sekundy*1000
+    // Počet milisekund v jednom „průměrném“ roku (365.25 dne)
     const msPerYear = 365.25 * 24 * 60 * 60 * 1000;
     
-    // Nejstarší datum (nejdřívější čas): Musí být po okamžiku, kdy by osoba dosáhla maxAge + 1.
-    // Tímto se garantuje, že kalendářní věk (Math.floor(age)) nikdy nepřesáhne maxAge.
-    const oldestPossibleTimeExclusive = now.getTime() - (maxAge + 1) * msPerYear;
+    // T_bad: Čas, kdy by osoba dosáhla věku maxAge + 1. Datum narození musí být > T_bad.
+    // T_bad by měl být výpočet (now - (maxAge + 1) * msPerYear). Math.floor zajišťuje celočíselný milisekundový timestamp.
+    const T_bad_timestamp = now.getTime() - (maxAge + 1) * msPerYear;
+    
+    // T_min: Čas, kdy by osoba dosáhla věku minAge. Datum narození musí být <= T_min.
+    const T_min_timestamp = now.getTime() - minAge * msPerYear;
+    
+    // Nejdřívější povolený timestamp (včetně): T_bad + 1 ms.
+    const minTime = Math.floor(T_bad_timestamp) + 1;
 
-    // Nejmladší datum (nejpozdější čas): Musí být před okamžikem, kdy by osoba dosáhla minAge.
-    const youngestPossibleTimeInclusive = now.getTime() - minAge * msPerYear;
+    // Nejpozdější povolený timestamp (včetně): T_min.
+    const maxTime = Math.floor(T_min_timestamp);
 
-    // Generujeme náhodný čas: 
-    // Od nejstaršího možného + 1 ms (aby se vyloučil věk maxAge + 1) 
-    // do nejmladšího možného (včetně).
-    const randomTime = randomInt(
-        Math.floor(oldestPossibleTimeExclusive + 1), 
-        Math.floor(youngestPossibleTimeInclusive)
-    );
+    // Náhodný timestamp v intervalu <minTime, maxTime>.
+    const randomTime = randomInt(minTime, maxTime);
 
     // Převod na ISO formát
     return new Date(randomTime).toISOString();
