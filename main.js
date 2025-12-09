@@ -99,15 +99,18 @@ export function getEmployeeStatistics(employees) {
     // Konstanty pro výpočet věku stejně jako při generování
     const msPerYear = 365.25 * 24 * 60 * 60 * 1000;
     
+    // Získáme referenční čas pro konzistentní výpočet věku napříč celým polem
+    const refTime = Date.now(); 
+
     // 1. Získáme přesné věky (desetinná čísla) pro výpočet přesného průměru
     const preciseAges = employees.map(e => 
-        (new Date().getTime() - new Date(e.birthdate).getTime()) / msPerYear
+        (refTime - new Date(e.birthdate).getTime()) / msPerYear
     );
 
     // 2. Získáme celé věky (zaokrouhleno dolů) pro výpočet min/max/median
     const integerAges = preciseAges.map(age => Math.floor(age));
     
-    // průměr věku – počítáme z PŘESNÝCH čísel
+    // průměr věku – počítáme z PŘESNÝCH čísel, zaokrouhleno na 1 desetinné místo
     const averageAge = preciseAges.length
         ? Number(average(preciseAges).toFixed(1))
         : 0;
@@ -115,7 +118,8 @@ export function getEmployeeStatistics(employees) {
     // min / max / median – počítáme z CELÝCH čísel (integerAges)
     const minAge = integerAges.length ? Math.min(...integerAges) : 0;
     const maxAge = integerAges.length ? Math.max(...integerAges) : 0;
-    const medianAge = integerAges.length ? Math.round(median(integerAges)) : 0;
+    // Používáme Math.floor na medián, aby výsledek X.5 byl brán jako celé číslo X
+    const medianAge = integerAges.length ? Math.floor(median(integerAges)) : 0;
 
     // medián workloadu – celé číslo
     const workloadsList = employees.map(e => e.workload);
