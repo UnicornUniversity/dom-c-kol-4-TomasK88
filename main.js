@@ -1,19 +1,4 @@
 /**
- * Generuje seznam zaměstnanců v požadované struktuře (gender, birthdate, name, surname, workload).
- * Vstupem je dtoIn s počtem osob (count) a věkovým intervalem (age.min, age.max).
- * Výstupem je pole objektů zaměstnanců.
- *
- * Příklad vstupu:
- *   { count: 5, age: { min: 18, max: 60 } }
- *
- * Příklad výstupu (1 záznam):
- *   { gender: "male", birthdate: "1993-08-07T00:00:00.000Z", name: "Jan", surname: "Novák", workload: 40 }
- *
- * Poznámka: Datum narození generujeme tak, aby skutečný věk byl v intervalu <min, max> včetně.
- *           Používáme průměrný rok 365.25 dne, což stačí vzhledem k toleranci testů.
- */
-
-/**
  * main: volá nejprve generateEmployeeData(dtoIn) a poté getEmployeeStatistics(employees)
  * Vrací dtoOut se statistikami.
  * @param {object} dtoIn - obsahuje count a age {min, max}
@@ -27,6 +12,10 @@ export function main(dtoIn) {
 
 
 /**
+ * Generuje seznam zaměstnanců v požadované struktuře (gender, birthdate, name, surname, workload).
+ * Vstupem je dtoIn s počtem osob (count) a věkovým intervalem (age.min, age.max).
+ * Výstupem je pole objektů zaměstnanců.
+ * 
  * @param {object} dtoIn - Vstupní data (počet a věkový interval)
  * @param {number} dtoIn.count - Počet zaměstnanců, které máme vygenerovat
  * @param {object} dtoIn.age - Objekt s minimálním a maximálním věkem
@@ -50,19 +39,19 @@ export function generateEmployeeData(dtoIn) {
     // pole pro vygenerované zaměstnance.
     const employees = [];
 
-//validace vstupů    
-if (typeof dtoIn.count !== "number" || dtoIn.count <= 0) {  //podmínka, že počet zaměstanců které chceme generovat musí být číslo větší než 0 a že je to vůbec číslo
-    console.error("Hodnota 'count' musí být kladné číslo.");
-  }
-  //podmínka pro věkový interval, validujeme jestli je zadáno číslo a jestli není minimální věk větší než maximální věk
-  if (  
-    typeof dtoIn.age !== "object" ||
-    typeof dtoIn.age.min !== "number" ||
-    typeof dtoIn.age.max !== "number" ||
-    dtoIn.age.min > dtoIn.age.max
-  ) {
-    console.error("Věkový interval je neplatný.");
-  }
+    //validace vstupů    
+    if (typeof dtoIn.count !== "number" || dtoIn.count <= 0) {  //podmínka, že počet zaměstanců které chceme generovat musí být číslo větší než 0 a že je to vůbec číslo
+        console.error("Hodnota 'count' musí být kladné číslo.");
+    }
+    //podmínka pro věkový interval, validujeme jestli je zadáno číslo a jestli není minimální věk větší než maximální věk
+    if (
+        typeof dtoIn.age !== "object" ||
+        typeof dtoIn.age.min !== "number" ||
+        typeof dtoIn.age.max !== "number" ||
+        dtoIn.age.min > dtoIn.age.max
+    ) {
+        console.error("Věkový interval je neplatný.");
+    }
 
 
     // generování tolika zaměstnanců, kolik je v dtoIn.count.
@@ -106,14 +95,11 @@ if (typeof dtoIn.count !== "number" || dtoIn.count <= 0) {  //podmínka, že po�
  */
 
 /**
- * Vypočítá požadované statistiky podle zadání.
- * - ages: počítá se jako desetinné roky (pracujeme s desetinným věkem)
- * - averageAge -> zaokrouhleno na 1 desetinné místo
- * - minAge, maxAge, medianAge -> zaokrouhleno na celá čísla (Math.round)
- * - medianWorkload -> celé číslo (zaručeno; výpočet mediánu a Math.round pro jistotu)
- * - averageWomenWorkload -> zaokrouhlení na 1 desetinné místo (nebo celé číslo) - povoleno
- * @param {Array} employees - pole objektů {gender, birthdate (ISO), name, surname, workload}
- * @returns {object} dtoOut s požadovanými poli
+* Vypočítá statistiky o zaměstnancích – počty úvazků, věkové statistiky,
+ * průměrné hodnoty a seřazený seznam zaměstnanců.
+ *
+ * @param {Array} employees - Pole zaměstnanců vytvořené funkcí generateEmployeeData.
+ * @returns {object} Vrací objekt obsahující statistiky.
  */
 export function getEmployeeStatistics(employees) {
     const dtoOut = {};
@@ -162,7 +148,9 @@ export function getEmployeeStatistics(employees) {
 }
 
 /**
- * Vypočítá věk přesně podle kalendáře 
+ * Vypočítá věk osoby v celých letech podle kalendářních dat.
+ * Zohledňuje, zda již letos proběhly narozeniny.
+ * 
  * @param {string} birthdate - ISO řetězec narození (např. "1988-04-12T10:23:00Z")
  * @returns {number} Věk v celých letech
  */
@@ -182,7 +170,8 @@ function calculateExactAge(birthdate) {
     return age;
 }
 /**
- * Vytvoří pole věků pomocí calculateExactAge().
+ * Vypočítá věk pro každého zaměstnance v poli pomocí přesného kalendářního výpočtu.
+ *
  * @param {Array} employees - Pole zaměstnanců
  * @returns {Array<number>} Věky zaměstnanců
  */
@@ -192,8 +181,9 @@ function calculateAges(employees) {
 
 /**
  * Spočítá průměr čísel v poli.
- * @param {Array<number>} arr
- * @returns {number}
+ * 
+ * @param {Array<number>} arr Pole čísel pro výpočet průměru.
+ * @returns {number} Vrací průměr čísel, nebo 0 pokud je pole prázdné.
  */
 function average(arr) {
     if (arr.length === 0) return 0;
@@ -202,9 +192,10 @@ function average(arr) {
 }
 
 /**
- * Spočítá medián pole čísel.
- * @param {Array<number>} arr
- * @returns {number}
+ * Spočítá medián čísel v poli.
+ * Pokud má pole sudý počet prvků, vrací průměr dvou prostředních hodnot.
+ * @param {Array<number>} arr Pole čísel, pro která se má zjistit medián.
+ * @returns {number} Vrací medián hodnot pole.
  */
 function median(arr) {
     if (arr.length === 0) return 0;
@@ -219,9 +210,10 @@ function median(arr) {
 }
 
 /**
- * Vrátí počty zaměstnanců podle workloadů.
- * @param {Array} employees
- * @returns {{workload10:number, workload20:number, workload30:number, workload40:number}}
+ * Spočítá počet zaměstnanců podle jejich pracovního úvazku (10/20/30/40).
+ *
+ * @param {Array} employees - Pole zaměstnanců, kteří mají vlastnost workload.
+ * @returns {{workload10:number, workload20:number, workload30:number, workload40:number}} Vrací objekt s počty pro jednotlivé typy úvazků.
  */
 function countWorkloads(employees) {
     return {
@@ -233,9 +225,10 @@ function countWorkloads(employees) {
 }
 
 /**
- * Spočítá průměrný workload žen, zaokrouhlený na 1 desetinné místo.
- * @param {Array} employees
- * @returns {number}
+ * Spočítá průměrný úvazek zaměstnankyň, zaokrouhlený na jedno desetinné místo.
+ *
+ * @param {Array} employees - Pole zaměstnanců, které může obsahovat ženy s různými úvazky.
+ * @returns {number}  Vrací průměrný úvazek žen, nebo 0 pokud žádné nejsou.
  */
 function calculateAverageWomenWorkload(employees) {
     const women = employees.filter(e => e.gender === "female");
@@ -248,9 +241,10 @@ function calculateAverageWomenWorkload(employees) {
 }
 
 /**
- * Vrátí zaměstnance seřazené podle úvazku (vzestupně).
- * @param {Array} employees
- * @returns {Array}
+* Vrátí nové pole zaměstnanců seřazené vzestupně podle pracovního úvazku.
+ *
+ * @param {Array} employees - Pole zaměstnanců s vlastností workload.
+ * @returns {Array} Vrací nové pole seřazených zaměstnanců.
  */
 function sortByWorkload(employees) {
     return employees.slice().sort((a, b) => a.workload - b.workload);
