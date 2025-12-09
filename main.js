@@ -109,7 +109,9 @@ export function getEmployeeStatistics(employees) {
     const ages = calculateAges(employees);
 
     // průměr věku – 1 desetinné místo
-    const averageAge = Number(average(ages).toFixed(1));
+   
+    const preciseAges = employees.map(e => calculatePreciseAge(e.birthdate));
+    const averageAge = Number(average(preciseAges).toFixed(1)); // průměr z „kontinuálního věku“
 
     // min / max / median věku – zaokrouhleno na celá čísla
     const minAge = Math.min(...ages);
@@ -241,7 +243,12 @@ function calculateAverageWomenWorkload(employees) {
 function sortByWorkload(employees) {
     return employees.slice().sort((a, b) => a.workload - b.workload);
 }
-
+/**
+ * Pomocná funkce pro generování náhodného čísla z intervalu
+ * @param {*} min dolní interval čísla
+ * @param {*} max horní interval čísla
+ * @returns 
+ */
 function randomInt(min, max) {
     // Math.random() vrací číslo v intervalu <0, 1).
     // Násobením a posunem získáme požadovaný interval a Math.floor zaokrouhlí dolů.
