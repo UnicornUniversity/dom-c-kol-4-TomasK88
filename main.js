@@ -50,8 +50,8 @@ export function generateEmployeeData(dtoIn) {
 }
 
 /**
- * Vrátí statistiky
- * @param {Array<object>} employees Generovaní zaměstnanců
+ * Funkce pro vrácení statistik
+ * @param {Array<object>} employees Pole zaměstanců
  * @returns {object} Obsahuje statistiky:
  *   total, workload10, workload20, workload30, workload40,
  *   averageAge, minAge, maxAge, medianAge,
